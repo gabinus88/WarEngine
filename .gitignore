@@ -8,3 +8,7 @@ yarn-error.log*
 
 # Variables d'environnement (contient des secrets)
 .env
+
+
+#Fichier
+*.db
