@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const appContainer = document.getElementById('app-container');
 
-    // Gère les événements venant du serveur
+    // --- GESTION DES ÉVÉNEMENTS DU SERVEUR ---
     socket.on('login_success', (data) => showGameView(data.username));
     socket.on('login_fail', (message) => displayMessage(message, 'error', 'messageArea'));
     socket.on('register_success', (message) => displayMessage(message, 'success', 'messageArea'));
@@ -10,10 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('update_success', (message) => displayMessage(message, 'success', 'updateMessage'));
     socket.on('update_fail', (message) => displayMessage(message, 'error', 'updateMessage'));
 
-    // Affiche la vue de connexion au démarrage
-    showLoginView();
+    // --- FONCTIONS QUI GÈRENT L'INTERFACE ---
 
-    // Fonction qui affiche le formulaire de connexion
     function showLoginView() {
         appContainer.innerHTML = `
             <div class="login-container">
@@ -28,31 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p id="toggleMode">Pas encore de compte ? <a href="#">S'inscrire</a></p>
             </div>
         `;
-        attachLoginListeners(); // Attache les écouteurs au formulaire qui vient d'être créé
-    }
 
-    // Fonction qui affiche la vue du jeu
-    function showGameView(username) {
-        appContainer.innerHTML = `
-            <div class="game-container">
-                <h1>Bienvenue, ${username} !</h1>
-                <div class="account-form">
-                    <h2>Modifier mon compte</h2>
-                    <form id="updateForm">
-                        <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-                        <input type="email" id="newEmail" placeholder="Nouvel e-mail">
-                        <button type="submit">Mettre à jour</button>
-                    </form>
-                    <p id="updateMessage" class="message"></p>
-                </div>
-                <button id="logoutButton">Déconnexion</button>
-            </div>
-        `;
-        attachGameListeners(); // Attache les écouteurs à la nouvelle vue
-    }
-
-    // Fonction qui attache les écouteurs au formulaire de connexion/inscription
-    function attachLoginListeners() {
+        // On attache les écouteurs DANS la fonction, APRÈS la création du HTML
         let isRegisterMode = false;
         const authForm = document.getElementById('authForm');
         const toggleModeContainer = document.getElementById('toggleMode');
@@ -78,8 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fonction qui attache les écouteurs à la vue du jeu
-    function attachGameListeners() {
+    function showGameView(username) {
+        appContainer.innerHTML = `
+            <div class="game-container">
+                <h1>Bienvenue, ${username} !</h1>
+                <div class="account-form">
+                    <h2>Modifier mon compte</h2>
+                    <form id="updateForm">
+                        <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                        <input type="email" id="newEmail" placeholder="Nouvel e-mail">
+                        <button type="submit">Mettre à jour</button>
+                    </form>
+                    <p id="updateMessage" class="message"></p>
+                </div>
+                <button id="logoutButton">Déconnexion</button>
+            </div>
+        `;
+
         document.getElementById('logoutButton').addEventListener('click', () => {
             location.reload();
         });
@@ -97,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Met à jour l'interface du formulaire (UI)
+    // --- Fonctions utilitaires ---
     function updateFormUI(isRegisterMode) {
         const formTitle = document.getElementById('formTitle');
         const emailInput = document.getElementById('email');
@@ -119,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Affiche un message à l'utilisateur
     function displayMessage(message, type, elementId) {
         const messageArea = document.getElementById(elementId);
         if (messageArea) {
@@ -127,4 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messageArea.className = `message ${type}`;
         }
     }
+
+    // --- Démarrage ---
+    showLoginView();
 });
