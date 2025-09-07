@@ -1,3 +1,4 @@
+/* Styles généraux */
 body {
     font-family: Arial, sans-serif;
     background-color: #121212;
@@ -9,6 +10,7 @@ body {
     margin: 0;
 }
 
+/* Conteneur du formulaire de connexion */
 .login-container {
     background-color: #1e1e1e;
     padding: 40px;
@@ -30,7 +32,7 @@ input {
     background-color: #252525;
     color: #e0e0e0;
     border-radius: 4px;
-    box-sizing: border-box; /* Important pour que le padding ne change pas la largeur */
+    box-sizing: border-box;
 }
 
 button {
@@ -43,16 +45,54 @@ button {
     margin-bottom: 10px;
 }
 
-#loginButton {
+#actionButton {
     background-color: #4CAF50; /* Vert */
     color: white;
 }
 
-#guestButton {
-    background-color: #333;
-    color: #e0e0e0;
+/* Style pour le lien de changement de mode */
+#toggleMode {
+    margin-top: 20px;
+    font-size: 14px;
+}
+#toggleMode a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+}
+#toggleMode a:hover {
+    text-decoration: underline;
 }
 
-button:hover {
-    opacity: 0.9;
+/* Style pour les messages d'erreur/succès */
+.message {
+    font-size: 14px;
+    padding: 10px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+}
+.message.success {
+    background-color: #2a4;
+    color: white;
+}
+.message.error {
+    background-color: #a22;
+    color: white;
+}
+
+/* Style pour cacher des éléments */
+.hidden {
+    display: none;
+}
+
+/* Style pour la vue du jeu après connexion */
+.game-container {
+    text-align: center;
+}
+#logoutButton {
+    background-color: #f44336; /* Rouge */
+    color: white;
+    padding: 10px 20px;
+    width: auto;
+    margin-top: 20px;
 }
