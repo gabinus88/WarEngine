@@ -33,10 +33,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction qui affiche la vue du jeu
     function showGameView(username) {
-        appContainer.innerHTML = `
-            <div class="game-page">
-                <button id="burger-menu"></button>
-                <aside id="sidebar" class="sidebar">
+    appContainer.innerHTML = `
+        <div class="game-page">
+            <button id="burger-menu"></button>
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Menu</h2>
+                </div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="#" id="sidebar-account">Compte</a></li>
+                        <li><a href="#" id="sidebar-division-editor">Éditeur de Division</a></li>
+                        <li><a href="#" id="sidebar-map">Carte</a></li>
+                        <li><a href="#" id="sidebar-search">Recherche</a></li>
+                        <li><a href="#" id="sidebar-skills">Compétences</a></li>
+                    </ul>
+                </nav>
+
+                <div id="account-section" class="sidebar-section active">
                     <div class="account-form">
                         <h2>Modifier mon compte</h2>
                         <form id="updateForm">
@@ -46,16 +60,39 @@ document.addEventListener('DOMContentLoaded', () => {
                         </form>
                         <p id="updateMessage" class="message"></p>
                     </div>
-                </aside>
-                <div class="game-content">
-                    <h1>Bienvenue, ${username} !</h1>
-                    <p>Le jeu est prêt.</p>
-                    <button id="logoutButton">Déconnexion</button>
                 </div>
+
+                <div id="division-editor-section" class="sidebar-section hidden">
+                    <h2>Éditeur de Division</h2>
+                    <p>Contenu pour l'éditeur de division...</p>
+                </div>
+
+                <div id="map-section" class="sidebar-section hidden">
+                    <h2>Carte</h2>
+                    <p>Contenu pour la carte...</p>
+                </div>
+
+                <div id="search-section" class="sidebar-section hidden">
+                    <h2>Recherche</h2>
+                    <p>Contenu pour la recherche...</p>
+                </div>
+
+                <div id="skills-section" class="sidebar-section hidden">
+                    <h2>Compétences</h2>
+                    <p>Contenu pour les compétences...</p>
+                </div>
+
+                <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
+            </aside>
+
+            <div class="game-content">
+                <h1>Bienvenue, ${username} !</h1>
+                <p>Le jeu est prêt.</p>
             </div>
-        `;
-        attachGameListeners(); // Attache les écouteurs à la nouvelle vue
-    }
+        </div>
+    `;
+    attachGameListeners(); // Attache les écouteurs à la nouvelle vue
+}
 
     // Fonction qui attache les écouteurs au formulaire de connexion/inscription
     function attachLoginListeners() {
@@ -86,30 +123,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction qui attache les écouteurs à la vue du jeu
     function attachGameListeners() {
-        const sidebar = document.getElementById('sidebar');
-        const burgerMenu = document.getElementById('burger-menu');
+    const sidebar = document.getElementById('sidebar');
+    const burgerMenu = document.getElementById('burger-menu');
+    const logoutButton = document.getElementById('logoutButton');
 
-        burgerMenu.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+    // Événement pour le menu burger
+    burgerMenu.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
 
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            location.reload();
-        });
+    // Déconnexion
+    logoutButton.addEventListener('click', () => {
+        location.reload();
+    });
 
-        document.getElementById('updateForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const newPassword = document.getElementById('newPassword').value;
-            const newEmail = document.getElementById('newEmail').value;
-            const data = {};
-            if (newPassword) data.newPassword = newPassword;
-            if (newEmail) data.newEmail = newEmail;
-            if (Object.keys(data).length > 0) {
-                socket.emit('update_account', data);
-            }
-        });
-    }
+    // Navigation dans le menu sidebar
+    document.getElementById('sidebar-account').addEventListener('click', (e) => {
+        e.preventDefault();
+        showSidebarSection('account-section');
+    });
+    document.getElementById('sidebar-division-editor').addEventListener('click', (e) => {
+        e.preventDefault();
+        showSidebarSection('division-editor-section');
+    });
+    document.getElementById('sidebar-map').addEventListener('click', (e) => {
+        e.preventDefault();
+        showSidebarSection('map-section');
+    });
+    document.getElementById('sidebar-search').addEventListener('click', (e) => {
+        e.preventDefault();
+        showSidebarSection('search-section');
+    });
+    document.getElementById('sidebar-skills').addEventListener('click', (e) => {
+        e.preventDefault();
+        showSidebarSection('skills-section');
+    });
 
+    // Formulaire de mise à jour du compte (reste inchangé)
+    document.getElementById('updateForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const newPassword = document.getElementById('newPassword').value;
+        const newEmail = document.getElementById('newEmail').value;
+        const data = {};
+        if (newPassword) data.newPassword = newPassword;
+        if (newEmail) data.newEmail = newEmail;
+        if (Object.keys(data).length > 0) {
+            socket.emit('update_account', data);
+        }
+    });
+}
+
+    // Nouvelle fonction pour afficher/cacher les sections du sidebar
+function showSidebarSection(sectionId) {
+    document.querySelectorAll('.sidebar-section').forEach(section => {
+        section.classList.add('hidden');
+    });
+    document.getElementById(sectionId).classList.remove('hidden');
+}
     // Met à jour l'interface du formulaire (UI)
     function updateFormUI(isRegisterMode) {
         const formTitle = document.getElementById('formTitle');

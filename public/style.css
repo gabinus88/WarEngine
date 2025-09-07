@@ -186,3 +186,63 @@ button {
     width: auto; /* Largeur automatique */
     margin-top: 20px;
 }
+
+
+/* Sidebar - Ajustement pour le contenu */
+.sidebar {
+    display: flex; /* Utilise flexbox pour l'alignement */
+    flex-direction: column; /* Les éléments s'empilent verticalement */
+    justify-content: space-between; /* Pousse les éléments aux extrémités */
+}
+
+/* En-tête du menu burger */
+.sidebar-header h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+/* Navigation du menu burger */
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 10px;
+}
+
+.sidebar-nav a {
+    display: block;
+    padding: 10px;
+    color: #e0e0e0;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.sidebar-nav a:hover {
+    background-color: #333;
+}
+
+/* Sections de contenu dans la sidebar */
+.sidebar-section {
+    flex-grow: 1; /* Permet à la section de prendre l'espace disponible */
+    padding-top: 20px;
+    overflow-y: auto; /* Permet le défilement si le contenu est trop long */
+}
+
+/* Position du bouton de déconnexion en bas */
+.sidebar-logout-button {
+    background-color: #f44336; /* Rouge */
+    color: white;
+    padding: 10px 20px;
+    width: 100%; /* S'étend sur toute la largeur de la sidebar */
+    margin-top: auto; /* Pousse le bouton vers le bas avec flexbox */
+    border-radius: 4px;
+    text-align: center;
+}
+.sidebar-logout-button:hover {
+    background-color: #d32f2f;
+}
