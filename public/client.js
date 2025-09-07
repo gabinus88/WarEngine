@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const appContainer = document.getElementById('app-container');
 
-    // --- GESTION DES ÉVÉNEMENTS DU SERVEUR ---
+    // Gère les événements venant du serveur
     socket.on('login_success', (data) => showGameView(data.username));
     socket.on('login_fail', (message) => displayMessage(message, 'error', 'messageArea'));
     socket.on('register_success', (message) => displayMessage(message, 'success', 'messageArea'));
@@ -10,8 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('update_success', (message) => displayMessage(message, 'success', 'updateMessage'));
     socket.on('update_fail', (message) => displayMessage(message, 'error', 'updateMessage'));
 
-    // --- FONCTIONS QUI GÈRENT L'INTERFACE ---
+    // Affiche la vue de connexion au démarrage
+    showLoginView();
 
+    // Fonction qui affiche le formulaire de connexion
     function showLoginView() {
         appContainer.innerHTML = `
             <div class="login-container">
@@ -26,8 +28,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p id="toggleMode">Pas encore de compte ? <a href="#">S'inscrire</a></p>
             </div>
         `;
+        attachLoginListeners(); // Attache les écouteurs au formulaire qui vient d'être créé
+    }
 
-        // On attache les écouteurs DANS la fonction, APRÈS la création du HTML
+    // Fonction qui affiche la vue du jeu
+    function showGameView(username) {
+        appContainer.innerHTML = `
+            <div class="game-page">
+                <button id="burger-menu"></button>
+                <aside id="sidebar" class="sidebar">
+                    <div class="account-form">
+                        <h2>Modifier mon compte</h2>
+                        <form id="updateForm">
+                            <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                            <input type="email" id="newEmail" placeholder="Nouvel e-mail">
+                            <button type="submit">Mettre à jour</button>
+                        </form>
+                        <p id="updateMessage" class="message"></p>
+                    </div>
+                </aside>
+                <div class="game-content">
+                    <h1>Bienvenue, ${username} !</h1>
+                    <p>Le jeu est prêt.</p>
+                    <button id="logoutButton">Déconnexion</button>
+                </div>
+            </div>
+        `;
+        attachGameListeners(); // Attache les écouteurs à la nouvelle vue
+    }
+
+    // Fonction qui attache les écouteurs au formulaire de connexion/inscription
+    function attachLoginListeners() {
         let isRegisterMode = false;
         const authForm = document.getElementById('authForm');
         const toggleModeContainer = document.getElementById('toggleMode');
@@ -53,22 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function showGameView(username) {
-        appContainer.innerHTML = `
-            <div class="game-container">
-                <h1>Bienvenue, ${username} !</h1>
-                <div class="account-form">
-                    <h2>Modifier mon compte</h2>
-                    <form id="updateForm">
-                        <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-                        <input type="email" id="newEmail" placeholder="Nouvel e-mail">
-                        <button type="submit">Mettre à jour</button>
-                    </form>
-                    <p id="updateMessage" class="message"></p>
-                </div>
-                <button id="logoutButton">Déconnexion</button>
-            </div>
-        `;
+    // Fonction qui attache les écouteurs à la vue du jeu
+    function attachGameListeners() {
+        const sidebar = document.getElementById('sidebar');
+        const burgerMenu = document.getElementById('burger-menu');
+
+        burgerMenu.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
 
         document.getElementById('logoutButton').addEventListener('click', () => {
             location.reload();
@@ -87,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Fonctions utilitaires ---
+    // Met à jour l'interface du formulaire (UI)
     function updateFormUI(isRegisterMode) {
         const formTitle = document.getElementById('formTitle');
         const emailInput = document.getElementById('email');
@@ -109,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Affiche un message à l'utilisateur
     function displayMessage(message, type, elementId) {
         const messageArea = document.getElementById(elementId);
         if (messageArea) {
@@ -116,7 +140,4 @@ document.addEventListener('DOMContentLoaded', () => {
             messageArea.className = `message ${type}`;
         }
     }
-
-    // --- Démarrage ---
-    showLoginView();
 });
