@@ -1,5 +1,5 @@
 # Dépendances
-/node_modules
+#/node_modules
 
 # Fichiers de log
 npm-debug.log*
