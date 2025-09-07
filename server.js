@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
             socket.emit('register_fail', 'Erreur du serveur.');
         }
     });
-
+    
     // --- GESTION DE LA CONNEXION ---
     socket.on('login', async (data) => {
         console.log(`Événement 'login' reçu pour : ${data.username}`);
@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
                     return socket.emit('update_fail', 'Cet e-mail est déjà utilisé par un autre compte.');
                 }
             }
-
+            
             await db_run(query, params);
             console.log(`-> SUCCÈS : Compte de ${socket.username} mis à jour.`);
             socket.emit('update_success', 'Votre compte a été mis à jour avec succès.');

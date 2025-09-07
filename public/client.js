@@ -1,8 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const appContainer = document.getElementById('app-container');
+    const disclaimerOverlay = document.getElementById('disclaimer-overlay');
+    const acceptButton = document.getElementById('accept-disclaimer');
 
-    // Gère les événements venant du serveur
+    // --- GESTION DU DISCLAIMER ---
+    if (!sessionStorage.getItem('disclaimerAccepted')) {
+        disclaimerOverlay.classList.add('visible');
+    }
+
+    acceptButton.addEventListener('click', () => {
+        disclaimerOverlay.classList.remove('visible');
+        sessionStorage.setItem('disclaimerAccepted', 'true');
+    });
+
+    // --- GESTION DES ÉVÉNEMENTS DU SERVEUR ---
     socket.on('login_success', (data) => showGameView(data.username));
     socket.on('login_fail', (message) => displayMessage(message, 'error', 'messageArea'));
     socket.on('register_success', (message) => displayMessage(message, 'success', 'messageArea'));
@@ -13,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Affiche la vue de connexion au démarrage
     showLoginView();
 
-    // Fonction qui affiche le formulaire de connexion
+    // --- FONCTIONS QUI GÈRENT L'INTERFACE ---
     function showLoginView() {
         appContainer.innerHTML = `
             <div class="login-container">
@@ -28,73 +40,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p id="toggleMode">Pas encore de compte ? <a href="#">S'inscrire</a></p>
             </div>
         `;
-        attachLoginListeners(); // Attache les écouteurs au formulaire qui vient d'être créé
+        attachLoginListeners();
     }
 
-    // Fonction qui affiche la vue du jeu
     function showGameView(username) {
-    appContainer.innerHTML = `
-        <div class="game-page">
-            <button id="burger-menu"></button>
-            <aside id="sidebar" class="sidebar">
-                <div class="sidebar-header">
-                    <h2>Menu</h2>
-                </div>
-                <nav class="sidebar-nav">
-                    <ul>
-                        <li><a href="#" id="sidebar-account">Compte</a></li>
-                        <li><a href="#" id="sidebar-division-editor">Éditeur de Division</a></li>
-                        <li><a href="#" id="sidebar-map">Carte</a></li>
-                        <li><a href="#" id="sidebar-search">Recherche</a></li>
-                        <li><a href="#" id="sidebar-skills">Compétences</a></li>
-                    </ul>
-                </nav>
-
-                <div id="account-section" class="sidebar-section active">
-                    <div class="account-form">
-                        <h2>Modifier mon compte</h2>
-                        <form id="updateForm">
-                            <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-                            <input type="email" id="newEmail" placeholder="Nouvel e-mail">
-                            <button type="submit">Mettre à jour</button>
-                        </form>
-                        <p id="updateMessage" class="message"></p>
+        appContainer.innerHTML = `
+            <div class="game-page">
+                <button id="burger-menu"></button>
+                <aside id="sidebar" class="sidebar">
+                    <div class="sidebar-header">
+                        <h2>Menu</h2>
                     </div>
+                    <nav class="sidebar-nav">
+                        <ul>
+                            <li><a href="#" data-section="account-section">Compte</a></li>
+                            <li><a href="#" data-section="division-editor-section">Éditeur de Division</a></li>
+                            <li><a href="#" data-section="map-section">Carte</a></li>
+                            <li><a href="#" data-section="search-section">Recherche</a></li>
+                            <li><a href="#" data-section="skills-section">Compétences</a></li>
+                        </ul>
+                    </nav>
+                    <div class="sidebar-content">
+                        <div id="account-section" class="sidebar-section">
+                            <div class="account-form">
+                                <h2>Modifier mon compte</h2>
+                                <form id="updateForm">
+                                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                                    <input type="email" id="newEmail" placeholder="Nouvel e-mail">
+                                    <button type="submit">Mettre à jour</button>
+                                </form>
+                                <p id="updateMessage" class="message"></p>
+                            </div>
+                        </div>
+                        <div id="division-editor-section" class="sidebar-section hidden">
+                            <h2>Éditeur de Division</h2><p>Contenu à venir...</p>
+                        </div>
+                        <div id="map-section" class="sidebar-section hidden">
+                            <h2>Carte</h2><p>Contenu à venir...</p>
+                        </div>
+                        <div id="search-section" class="sidebar-section hidden">
+                            <h2>Recherche</h2><p>Contenu à venir...</p>
+                        </div>
+                        <div id="skills-section" class="sidebar-section hidden">
+                            <h2>Compétences</h2><p>Contenu à venir...</p>
+                        </div>
+                    </div>
+                    <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
+                </aside>
+                <div class="game-content">
+                    <h1>Bienvenue, ${username} !</h1>
+                    <p>Le jeu est prêt.</p>
                 </div>
-
-                <div id="division-editor-section" class="sidebar-section hidden">
-                    <h2>Éditeur de Division</h2>
-                    <p>Contenu pour l'éditeur de division...</p>
-                </div>
-
-                <div id="map-section" class="sidebar-section hidden">
-                    <h2>Carte</h2>
-                    <p>Contenu pour la carte...</p>
-                </div>
-
-                <div id="search-section" class="sidebar-section hidden">
-                    <h2>Recherche</h2>
-                    <p>Contenu pour la recherche...</p>
-                </div>
-
-                <div id="skills-section" class="sidebar-section hidden">
-                    <h2>Compétences</h2>
-                    <p>Contenu pour les compétences...</p>
-                </div>
-
-                <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
-            </aside>
-
-            <div class="game-content">
-                <h1>Bienvenue, ${username} !</h1>
-                <p>Le jeu est prêt.</p>
             </div>
-        </div>
-    `;
-    attachGameListeners(); // Attache les écouteurs à la nouvelle vue
-}
+        `;
+        attachGameListeners();
+    }
 
-    // Fonction qui attache les écouteurs au formulaire de connexion/inscription
+    // --- FONCTIONS QUI ATTACHENT LES ÉVÉNEMENTS ---
     function attachLoginListeners() {
         let isRegisterMode = false;
         const authForm = document.getElementById('authForm');
@@ -121,66 +123,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fonction qui attache les écouteurs à la vue du jeu
     function attachGameListeners() {
-    const sidebar = document.getElementById('sidebar');
-    const burgerMenu = document.getElementById('burger-menu');
-    const logoutButton = document.getElementById('logoutButton');
+        const sidebar = document.getElementById('sidebar');
+        const burgerMenu = document.getElementById('burger-menu');
 
-    // Événement pour le menu burger
-    burgerMenu.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
+        burgerMenu.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
 
-    // Déconnexion
-    logoutButton.addEventListener('click', () => {
-        location.reload();
-    });
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            location.reload();
+        });
 
-    // Navigation dans le menu sidebar
-    document.getElementById('sidebar-account').addEventListener('click', (e) => {
-        e.preventDefault();
-        showSidebarSection('account-section');
-    });
-    document.getElementById('sidebar-division-editor').addEventListener('click', (e) => {
-        e.preventDefault();
-        showSidebarSection('division-editor-section');
-    });
-    document.getElementById('sidebar-map').addEventListener('click', (e) => {
-        e.preventDefault();
-        showSidebarSection('map-section');
-    });
-    document.getElementById('sidebar-search').addEventListener('click', (e) => {
-        e.preventDefault();
-        showSidebarSection('search-section');
-    });
-    document.getElementById('sidebar-skills').addEventListener('click', (e) => {
-        e.preventDefault();
-        showSidebarSection('skills-section');
-    });
+        document.getElementById('updateForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const newEmail = document.getElementById('newEmail').value;
+            const data = {};
+            if (newPassword) data.newPassword = newPassword;
+            if (newEmail) data.newEmail = newEmail;
+            if (Object.keys(data).length > 0) {
+                socket.emit('update_account', data);
+            }
+        });
 
-    // Formulaire de mise à jour du compte (reste inchangé)
-    document.getElementById('updateForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const newPassword = document.getElementById('newPassword').value;
-        const newEmail = document.getElementById('newEmail').value;
-        const data = {};
-        if (newPassword) data.newPassword = newPassword;
-        if (newEmail) data.newEmail = newEmail;
-        if (Object.keys(data).length > 0) {
-            socket.emit('update_account', data);
-        }
-    });
-}
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSidebarSection(e.target.dataset.section);
+            });
+        });
+    }
 
-    // Nouvelle fonction pour afficher/cacher les sections du sidebar
-function showSidebarSection(sectionId) {
-    document.querySelectorAll('.sidebar-section').forEach(section => {
-        section.classList.add('hidden');
-    });
-    document.getElementById(sectionId).classList.remove('hidden');
-}
-    // Met à jour l'interface du formulaire (UI)
+    // --- FONCTIONS UTILITAIRES ---
     function updateFormUI(isRegisterMode) {
         const formTitle = document.getElementById('formTitle');
         const emailInput = document.getElementById('email');
@@ -202,7 +177,16 @@ function showSidebarSection(sectionId) {
         }
     }
 
-    // Affiche un message à l'utilisateur
+    function showSidebarSection(sectionId) {
+        document.querySelectorAll('.sidebar-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+        const activeSection = document.getElementById(sectionId);
+        if(activeSection) {
+            activeSection.classList.remove('hidden');
+        }
+    }
+    
     function displayMessage(message, type, elementId) {
         const messageArea = document.getElementById(elementId);
         if (messageArea) {

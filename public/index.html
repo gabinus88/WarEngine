@@ -3,12 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BurgondEngine</title>
+    <title>WarEngine</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Fenêtre modale pour le disclaimer -->
+    <div id="disclaimer-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Avertissement</h2>
+            <ul>
+                <li>Je ne suis pas développeur, ce jeu a été codé par une IA.</li>
+                <li>Merci de ne mettre aucune information personnelle sensible.</li>
+                <li>La courtoisie en premier : tout comportement irrespectueux pourra entraîner une exclusion.</li>
+                <li>Ce projet est fourni "en l'état", sans garantie d'aucune sorte. En jouant, vous acceptez que le créateur ne puisse être tenu responsable d'éventuels problèmes.</li>
+            </ul>
+            <button id="accept-disclaimer">J'ai compris et j'accepte</button>
+        </div>
+    </div>
+
+    <!-- Conteneur principal qui sera mis à jour par le JavaScript -->
     <main id="app-container">
-        </main>
+        <!-- Le contenu (connexion ou jeu) sera injecté ici par client.js -->
+    </main>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
 </body>
