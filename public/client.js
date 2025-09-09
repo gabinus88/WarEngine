@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- GESTION DES ÉVÉNEMENTS DU SERVEUR ---
-    socket.on('login_success', (data) => showGameView(data.username));
+    socket.on('login_success', (data) => {
+        socket.username = data.username;
+        showGameView(data.username);
+    });
     socket.on('login_fail', (message) => displayMessage(message, 'error', 'messageArea'));
     socket.on('register_success', (message) => displayMessage(message, 'success', 'messageArea'));
     socket.on('register_fail', (message) => displayMessage(message, 'error', 'messageArea'));
@@ -46,50 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function showGameView(username) {
         appContainer.innerHTML = `
             <div class="game-page">
-                <button id="burger-menu"></button>
-                <aside id="sidebar" class="sidebar">
-                    <div class="sidebar-header">
-                        <h2>Menu</h2>
+                <div class="team-selection">
+                    <h2>Choisissez votre équipe</h2>
+                    <div class="team-buttons">
+                        <button class="team-btn blue" data-team="blue">Équipe Bleue</button>
+                        <button class="team-btn red" data-team="red">Équipe Rouge</button>
+                        <button class="team-btn green" data-team="green">Équipe Verte</button>
                     </div>
-                    <nav class="sidebar-nav">
-                        <ul>
-                            <li><a href="#" data-section="account-section">Compte</a></li>
-                            <li><a href="#" data-section="division-editor-section">Éditeur de Division</a></li>
-                            <li><a href="#" data-section="map-section">Carte</a></li>
-                            <li><a href="#" data-section="search-section">Recherche</a></li>
-                            <li><a href="#" data-section="skills-section">Compétences</a></li>
-                        </ul>
-                    </nav>
-                    <div class="sidebar-content">
-                        <div id="account-section" class="sidebar-section">
-                            <div class="account-form">
-                                <h2>Modifier mon compte</h2>
-                                <form id="updateForm">
-                                    <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-                                    <input type="email" id="newEmail" placeholder="Nouvel e-mail">
-                                    <button type="submit">Mettre à jour</button>
-                                </form>
-                                <p id="updateMessage" class="message"></p>
-                            </div>
-                        </div>
-                        <div id="division-editor-section" class="sidebar-section hidden">
-                            <h2>Éditeur de Division</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="map-section" class="sidebar-section hidden">
-                            <h2>Carte</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="search-section" class="sidebar-section hidden">
-                            <h2>Recherche</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="skills-section" class="sidebar-section hidden">
-                            <h2>Compétences</h2><p>Contenu à venir...</p>
-                        </div>
-                    </div>
-                    <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
-                </aside>
-                <div class="game-content">
-                    <h1>Bienvenue, ${username} !</h1>
-                    <p>Le jeu est prêt.</p>
                 </div>
             </div>
         `;
@@ -124,35 +90,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function attachGameListeners() {
-        const sidebar = document.getElementById('sidebar');
-        const burgerMenu = document.getElementById('burger-menu');
-
-        burgerMenu.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            location.reload();
-        });
-
-        document.getElementById('updateForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const newPassword = document.getElementById('newPassword').value;
-            const newEmail = document.getElementById('newEmail').value;
-            const data = {};
-            if (newPassword) data.newPassword = newPassword;
-            if (newEmail) data.newEmail = newEmail;
-            if (Object.keys(data).length > 0) {
-                socket.emit('update_account', data);
-            }
-        });
-
-        document.querySelectorAll('.sidebar-nav a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                showSidebarSection(e.target.dataset.section);
+        // Gestion de la sélection d'équipe
+        document.querySelectorAll('.team-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const team = e.target.dataset.team;
+                startGame(team);
             });
         });
+    }
+
+    function startGame(team) {
+        // Charger le script du jeu
+        const gameScript = document.createElement('script');
+        gameScript.src = 'game/GameClient.js';
+        gameScript.onload = () => {
+            // Initialiser le client de jeu
+            const gameClient = new GameClient(socket);
+            gameClient.joinGame(socket.username, team);
+            
+            // Masquer la sélection d'équipe
+            document.querySelector('.team-selection').style.display = 'none';
+        };
+        document.head.appendChild(gameScript);
     }
 
     // --- FONCTIONS UTILITAIRES ---

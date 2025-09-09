@@ -269,3 +269,170 @@ button {
     width: 100%;
 }
 
+/* Styles pour le jeu */
+.team-selection {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 2000;
+}
+
+.team-selection h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.team-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.team-btn {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.team-btn.blue {
+    background: #0066CC;
+    color: white;
+}
+
+.team-btn.blue:hover {
+    background: #0052A3;
+    transform: scale(1.05);
+}
+
+.team-btn.red {
+    background: #CC0000;
+    color: white;
+}
+
+.team-btn.red:hover {
+    background: #A30000;
+    transform: scale(1.05);
+}
+
+.team-btn.green {
+    background: #00CC00;
+    color: white;
+}
+
+.team-btn.green:hover {
+    background: #00A300;
+    transform: scale(1.05);
+}
+
+/* Styles pour le canvas de jeu */
+canvas {
+    cursor: crosshair;
+}
+
+/* Styles pour l'interface de jeu */
+.game-ui {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+.game-ui > * {
+    pointer-events: auto;
+}
+
+/* Mini-map */
+.minimap {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 200px;
+    height: 150px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid white;
+    border-radius: 5px;
+}
+
+/* Informations des unités */
+.unit-info {
+    position: fixed;
+    top: 170px;
+    left: 10px;
+    width: 300px;
+    height: 200px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* Ressources */
+.resources {
+    position: fixed;
+    top: 380px;
+    left: 10px;
+    width: 300px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* Menu de construction */
+.build-menu {
+    position: fixed;
+    top: 490px;
+    left: 10px;
+    width: 300px;
+    height: 150px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 10px;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* Instructions de contrôle */
+.controls {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 15px;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+.controls h3 {
+    margin: 0 0 10px 0;
+    color: #00FF00;
+}
+
+.controls ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.controls li {
+    margin: 5px 0;
+}
+

@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require("socket.io");
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const GameEngine = require('./game/GameEngine');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,6 +11,9 @@ const io = new Server(server);
 
 const PORT = 3000;
 const dbPath = path.resolve(__dirname, 'warengine.db');
+
+// Initialiser le moteur de jeu
+const gameEngine = new GameEngine();
 
 // --- Initialisation de la base de données SQLite ---
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -30,6 +34,46 @@ app.use(express.static('public'));
 
 io.on('connection', (socket) => {
     console.log(`Un joueur s'est connecté : ${socket.id}`);
+
+    // --- GESTION DU JEU ---
+    socket.on('join_game', (data) => {
+        const { username, team } = data;
+        const player = gameEngine.addPlayer(socket.id, username, team);
+        socket.emit('game_state', gameEngine.getGameState());
+        socket.broadcast.emit('player_joined', { player });
+    });
+
+    socket.on('move_units', (data) => {
+        const { unitIds, targetX, targetY } = data;
+        gameEngine.moveUnits(unitIds, targetX, targetY);
+        io.emit('units_moved', { unitIds, targetX, targetY });
+    });
+
+    socket.on('select_units', (data) => {
+        const { unitIds } = data;
+        gameEngine.selectUnits(socket.id, unitIds);
+        io.emit('units_selected', { playerId: socket.id, unitIds });
+    });
+
+    socket.on('attack_target', (data) => {
+        const { unitIds, targetX, targetY, targetId } = data;
+        gameEngine.attackTarget(unitIds, targetX, targetY, targetId);
+        io.emit('attack_initiated', { unitIds, targetX, targetY, targetId });
+    });
+
+    socket.on('build_structure', (data) => {
+        const { type, x, y } = data;
+        const structure = gameEngine.buildStructure(socket.id, type, x, y);
+        if (structure) {
+            io.emit('structure_built', { structure });
+        }
+    });
+
+    socket.on('camera_move', (data) => {
+        const { x, y } = data;
+        gameEngine.updateCameraPosition(socket.id, x, y);
+        socket.broadcast.emit('camera_updated', { playerId: socket.id, x, y });
+    });
 
     // --- GESTION DE L'INSCRIPTION ---
     socket.on('register', async (data) => {
@@ -123,6 +167,8 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`Le joueur ${socket.username || socket.id} s'est déconnecté.`);
+        gameEngine.removePlayer(socket.id);
+        socket.broadcast.emit('player_left', { playerId: socket.id });
     });
 });
 
