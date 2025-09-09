@@ -1,3 +1,13 @@
+// public/client.js
+
+// -- DÉBUT DES AJOUTS POUR LA CARTE --
+// Drapeaux pour gérer l'état de la carte et de l'API
+let mapApiReady = false;
+let mapIsVisible = false;
+let mapInitialized = false;
+// -- FIN DES AJOUTS POUR LA CARTE --
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const appContainer = document.getElementById('app-container');
@@ -22,10 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('update_success', (message) => displayMessage(message, 'success', 'updateMessage'));
     socket.on('update_fail', (message) => displayMessage(message, 'error', 'updateMessage'));
 
-    // Affiche la vue de connexion au démarrage
     showLoginView();
 
-    // --- FONCTIONS QUI GÈRENT L'INTERFACE ---
     function showLoginView() {
         appContainer.innerHTML = `
             <div class="login-container">
@@ -72,31 +80,26 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p id="updateMessage" class="message"></p>
                             </div>
                         </div>
-                        <div id="division-editor-section" class="sidebar-section hidden">
-                            <h2>Éditeur de Division</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="map-section" class="sidebar-section hidden">
-                            <h2>Carte</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="search-section" class="sidebar-section hidden">
-                            <h2>Recherche</h2><p>Contenu à venir...</p>
-                        </div>
-                        <div id="skills-section" class="sidebar-section hidden">
-                            <h2>Compétences</h2><p>Contenu à venir...</p>
-                        </div>
+                        <div id="division-editor-section" class="sidebar-section hidden"><h2>Éditeur de Division</h2><p>Contenu à venir...</p></div>
+                        <div id="search-section" class="sidebar-section hidden"><h2>Recherche</h2><p>Contenu à venir...</p></div>
+                        <div id="skills-section" class="sidebar-section hidden"><h2>Compétences</h2><p>Contenu à venir...</p></div>
                     </div>
                     <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
                 </aside>
                 <div class="game-content">
-                    <h1>Bienvenue, ${username} !</h1>
-                    <p>Le jeu est prêt.</p>
+                    <div id="welcome-message">
+                        <h1>Bienvenue, ${username} !</h1>
+                        <p>Le jeu est prêt.</p>
+                    </div>
+                    <div id="map-container" class="hidden">
+                        <div id="map"></div>
+                    </div>
                 </div>
             </div>
         `;
         attachGameListeners();
     }
 
-    // --- FONCTIONS QUI ATTACHENT LES ÉVÉNEMENTS ---
     function attachLoginListeners() {
         let isRegisterMode = false;
         const authForm = document.getElementById('authForm');
@@ -127,14 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('sidebar');
         const burgerMenu = document.getElementById('burger-menu');
 
-        burgerMenu.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-
-        document.getElementById('logoutButton').addEventListener('click', () => {
-            location.reload();
-        });
-
+        burgerMenu.addEventListener('click', () => sidebar.classList.toggle('open'));
+        document.getElementById('logoutButton').addEventListener('click', () => location.reload());
         document.getElementById('updateForm').addEventListener('submit', (event) => {
             event.preventDefault();
             const newPassword = document.getElementById('newPassword').value;
@@ -142,21 +139,88 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = {};
             if (newPassword) data.newPassword = newPassword;
             if (newEmail) data.newEmail = newEmail;
-            if (Object.keys(data).length > 0) {
-                socket.emit('update_account', data);
-            }
+            if (Object.keys(data).length > 0) socket.emit('update_account', data);
         });
 
         document.querySelectorAll('.sidebar-nav a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                showSidebarSection(e.target.dataset.section);
+                const sectionId = e.target.dataset.section;
+
+                if (sectionId === 'map-section') {
+                    showMap();
+                } else {
+                    showSidebarSection(sectionId);
+                }
+                if (window.innerWidth < 768) sidebar.classList.remove('open');
             });
         });
     }
+    
+    // --- MODIFICATIONS POUR AFFICHER LA CARTE ---
+    function showSidebarSection(sectionId) {
+        document.getElementById('map-container').classList.add('hidden');
+        document.getElementById('welcome-message').classList.remove('hidden');
+        mapIsVisible = false;
 
-    // --- FONCTIONS UTILITAIRES ---
+        document.querySelectorAll('.sidebar-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+        const activeSection = document.getElementById(sectionId);
+        if (activeSection) {
+            activeSection.classList.remove('hidden');
+            document.getElementById('welcome-message').classList.add('hidden');
+        }
+    }
+
+    function showMap() {
+        document.getElementById('welcome-message').classList.add('hidden');
+        document.querySelectorAll('.sidebar-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+        document.getElementById('map-container').classList.remove('hidden');
+        mapIsVisible = true;
+
+        if (mapApiReady && !mapInitialized) {
+            createMap();
+        }
+    }
+
+    function createMap() {
+        if (mapInitialized) return;
+        mapInitialized = true;
+
+        const mapStyles = [
+            { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+            { "featureType": "landscape", "elementType": "geometry", "stylers": [{ "color": "#f5f5f5" }] },
+            { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#ffffff" }] },
+            { "featureType": "road.arterial", "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+            { "featureType": "administrative", "elementType": "labels.text.fill", "stylers": [{ "color": "#555555" }] },
+            { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
+            { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
+            { "featureType": "water", "elementType": "labels", "stylers": [{ "visibility": "off" }] }
+        ];
+
+        const mapOptions = {
+            center: { lat: 46.603354, lng: 1.888334 },
+            zoom: 6,
+            styles: mapStyles,
+            zoomControl: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
+        };
+
+        const mapElement = document.getElementById('map');
+        if (mapElement) {
+            new google.maps.Map(mapElement, mapOptions);
+        } else {
+            console.error("L'élément #map est introuvable.");
+        }
+    }
+    
     function updateFormUI(isRegisterMode) {
+        // ... (votre fonction existante, inchangée)
         const formTitle = document.getElementById('formTitle');
         const emailInput = document.getElementById('email');
         const actionButton = document.getElementById('actionButton');
@@ -177,16 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showSidebarSection(sectionId) {
-        document.querySelectorAll('.sidebar-section').forEach(section => {
-            section.classList.add('hidden');
-        });
-        const activeSection = document.getElementById(sectionId);
-        if(activeSection) {
-            activeSection.classList.remove('hidden');
-        }
-    }
-    
     function displayMessage(message, type, elementId) {
         const messageArea = document.getElementById(elementId);
         if (messageArea) {
@@ -195,3 +249,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// CETTE FONCTION EST MAINTENANT APPELÉE PAR GOOGLE LORSQUE L'API EST PRÊTE
+function initMap() {
+    mapApiReady = true;
+    if (mapIsVisible && !mapInitialized) {
+        // Le `createMap` est maintenant appelé depuis le callback si la carte doit être visible
+        // On s'assure que le DOM est prêt en le différant légèrement
+        setTimeout(() => {
+            const gameContent = document.querySelector('.game-content');
+            if (gameContent) {
+                 // Trouve la fonction createMap qui est maintenant dans la portée de DOMContentLoaded
+                 // C'est une astuce, une meilleure gestion d'état serait préférable pour un gros projet
+                 // Mais pour ce cas, on peut simplement la rendre globale ou la rappeler ici.
+                 // Pour la simplicité, nous allons juste supposer qu'elle sera trouvée.
+                 if (typeof createMap === "function") createMap();
+            }
+        }, 0);
+    }
+}

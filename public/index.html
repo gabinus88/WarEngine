@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Fenêtre modale pour le disclaimer -->
     <div id="disclaimer-overlay" class="modal-overlay">
         <div class="modal-content">
             <h2>Avertissement</h2>
@@ -21,12 +20,11 @@
         </div>
     </div>
 
-    <!-- Conteneur principal qui sera mis à jour par le JavaScript -->
     <main id="app-container">
-        <!-- Le contenu (connexion ou jeu) sera injecté ici par client.js -->
-    </main>
+        </main>
     
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzWYqnSS7RuX4TWqZX18N2ohA2r0Pj-cM&callback=initMap"></script>
 </body>
 </html>

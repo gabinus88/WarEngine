@@ -115,7 +115,26 @@ button {
     justify-content: center;
     align-items: center;
     height: 100%;
+    width: 100%; /* Ajout pour que le conteneur prenne toute la largeur */
+    padding: 80px 20px 20px 80px; /* Espace pour le menu burger et autres UI */
+    box-sizing: border-box;
 }
+
+/* NOUVEAUX STYLES POUR LA CARTE */
+#map-container {
+    width: 100%;  /* Prend toute la largeur de .game-content */
+    height: 100%; /* Prend toute la hauteur de .game-content */
+    border-radius: 8px;
+    overflow: hidden; /* Assure que la carte ne dépasse pas des coins arrondis */
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px; /* Pour arrondir les coins de la carte */
+}
+/* FIN DES NOUVEAUX STYLES */
+
 
 /* Bouton du menu Burger */
 #burger-menu {
@@ -268,4 +287,3 @@ button {
     color: white;
     width: 100%;
 }
-
