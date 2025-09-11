@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- GESTION DES ÉVÉNEMENTS DU SERVEUR ---
-    socket.on('login_success', (data) => showGameView(data.username));
+    socket.on('login_success', (data) => {
+        sessionStorage.setItem('username', data.username);
+        showGameView(data.username);
+    });
     socket.on('login_fail', (message) => displayMessage(message, 'error', 'messageArea'));
     socket.on('register_success', (message) => displayMessage(message, 'success', 'messageArea'));
     socket.on('register_fail', (message) => displayMessage(message, 'error', 'messageArea'));
@@ -23,7 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('update_fail', (message) => displayMessage(message, 'error', 'updateMessage'));
 
     // Affiche la vue de connexion au démarrage
-    showLoginView();
+    const savedUsername = sessionStorage.getItem('username');
+    if (savedUsername) {
+        socket.emit('reconnect', { username: savedUsername });
+    } else {
+        showLoginView();
+    }
 
     // --- FONCTIONS QUI GÈRENT L'INTERFACE ---
     function showLoginView() {
@@ -49,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="burger-menu"></button>
                 <aside id="sidebar" class="sidebar">
                     <div class="sidebar-header">
-                        <h2>Menu</h2>
+                        <h2>${username}</h2>
                     </div>
                     <nav class="sidebar-nav">
                         <ul>
@@ -76,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h2>Éditeur de Division</h2><p>Contenu à venir...</p>
                         </div>
                         <div id="map-section" class="sidebar-section hidden">
-                            <h2>Carte</h2><p>Contenu à venir...</p>
+                            <h2>Carte</h2>
+                            <button id="start-checkers">Jeu de Dames</button>
                         </div>
                         <div id="search-section" class="sidebar-section hidden">
                             <h2>Recherche</h2><p>Contenu à venir...</p>
@@ -88,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="logoutButton" class="sidebar-logout-button">Déconnexion</button>
                 </aside>
                 <div class="game-content">
-                    <h1>Bienvenue, ${username} !</h1>
                     <p>Le jeu est prêt.</p>
+                    <div id="checkers-game" class="hidden"></div>
                 </div>
             </div>
         `;
@@ -132,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('logoutButton').addEventListener('click', () => {
+            sessionStorage.removeItem('username');
             location.reload();
         });
 
@@ -152,6 +162,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 showSidebarSection(e.target.dataset.section);
             });
+        });
+
+        document.getElementById('start-checkers').addEventListener('click', () => {
+            document.querySelector('.game-content p').classList.add('hidden');
+            document.getElementById('checkers-game').classList.remove('hidden');
+            socket.emit('checkers_start');
+        });
+
+        socket.on('checkers_update', (game) => {
+            drawCheckersBoard(game.board);
+        });
+
+        socket.on('checkers_error', (message) => {
+            displayMessage(message, 'error', 'updateMessage');
         });
     }
 
@@ -185,6 +209,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if(activeSection) {
             activeSection.classList.remove('hidden');
         }
+    }
+
+    function drawCheckersBoard(board) {
+        const gameContainer = document.getElementById('checkers-game');
+        gameContainer.innerHTML = '';
+        const boardElement = document.createElement('div');
+        boardElement.className = 'checkers-board';
+        let selectedPiece = null;
+
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                const square = document.createElement('div');
+                square.className = `checkers-square ${((i + j) % 2 === 0) ? 'white' : 'black'}`;
+                square.dataset.row = i;
+                square.dataset.col = j;
+
+                const piece = board[i][j];
+                if (piece) {
+                    const pieceElement = document.createElement('div');
+                    pieceElement.className = `checkers-piece ${piece === 'r' ? 'red' : 'black'}`;
+                    square.appendChild(pieceElement);
+                }
+
+                square.addEventListener('click', () => {
+                    if (selectedPiece) {
+                        socket.emit('checkers_move', { from: selectedPiece, to: { row: i, col: j } });
+                        selectedPiece = null;
+                    } else if (piece) {
+                        selectedPiece = { row: i, col: j };
+                    }
+                });
+
+                boardElement.appendChild(square);
+            }
+        }
+        gameContainer.appendChild(boardElement);
     }
     
     function displayMessage(message, type, elementId) {

@@ -77,6 +77,25 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('reconnect', async (data) => {
+        console.log(`Événement 'reconnect' reçu pour : ${data.username}`);
+        const { username } = data;
+        try {
+            const user = await db_get("SELECT * FROM users WHERE username = ?", [username]);
+            if (user) {
+                console.log(`-> SUCCÈS : Reconnexion de ${username}`);
+                socket.username = user.username;
+                socket.emit('login_success', { username: user.username });
+            } else {
+                console.log(`-> Échec reconnexion : Utilisateur non trouvé pour ${username}`);
+                socket.emit('login_fail', 'Utilisateur non trouvé.');
+            }
+        } catch (err) {
+            console.error("ERREUR lors de la reconnexion:", err.message);
+            socket.emit('login_fail', 'Erreur du serveur.');
+        }
+    });
+
     // --- GESTION DE LA MISE À JOUR DU COMPTE ---
     socket.on('update_account', async (data) => {
         console.log(`Événement 'update_account' reçu pour l'utilisateur connecté : ${socket.username}`);
@@ -123,6 +142,66 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`Le joueur ${socket.username || socket.id} s'est déconnecté.`);
+    });
+
+    // --- JEU DE DAMES ---
+    let checkersGame = {
+        board: null,
+        players: {},
+        currentPlayer: null
+    };
+
+    function initializeCheckersBoard() {
+        const board = Array(8).fill(null).map(() => Array(8).fill(null));
+        for (let i = 0; i < 3; i++) {
+            for (let j = (i % 2); j < 8; j += 2) {
+                board[i][j] = 'r'; // Red pieces
+            }
+        }
+        for (let i = 5; i < 8; i++) {
+            for (let j = (i % 2); j < 8; j += 2) {
+                board[i][j] = 'b'; // Black pieces
+            }
+        }
+        return board;
+    }
+
+    socket.on('checkers_start', () => {
+        if (Object.keys(checkersGame.players).length >= 2) {
+            return socket.emit('checkers_error', 'La partie est déjà pleine.');
+        }
+
+        let playerColor = 'b';
+        if (Object.keys(checkersGame.players).length === 0) {
+            playerColor = 'r';
+            checkersGame.board = initializeCheckersBoard();
+            checkersGame.currentPlayer = 'r';
+        }
+        checkersGame.players[socket.id] = playerColor;
+
+        io.emit('checkers_update', checkersGame);
+    });
+
+    socket.on('checkers_move', (move) => {
+        const playerColor = checkersGame.players[socket.id];
+        if (!playerColor || playerColor !== checkersGame.currentPlayer) {
+            return socket.emit('checkers_error', 'Ce n\'est pas votre tour.');
+        }
+
+        const { from, to } = move;
+        const piece = checkersGame.board[from.row][from.col];
+
+        if (piece !== playerColor) {
+            return socket.emit('checkers_error', 'Case invalide.');
+        }
+
+        // Basic move validation (no capture logic yet)
+        checkersGame.board[to.row][to.col] = piece;
+        checkersGame.board[from.row][from.col] = null;
+
+        checkersGame.currentPlayer = (checkersGame.currentPlayer === 'r') ? 'b' : 'r';
+
+        io.emit('checkers_update', checkersGame);
     });
 });
 
